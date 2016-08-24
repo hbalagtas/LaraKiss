@@ -55,6 +55,7 @@ class AddShow extends Command
                 $show->folder = str_slug($show->name);  
                 $show->source = $source;
                 $show->cover = $html->find('.barContent img', 2)->src;
+                $show->summary = $html->find('#leftside div p', 6)->plaintext;
                 $show->watched = false;
                 $show->save();
 
@@ -68,7 +69,7 @@ class AddShow extends Command
 
                     } else {
                         $episode = new Episode;
-                        $episode->name = $ep_name;
+                        $episode->name = str_replace('Episode-', '', $ep_name);
                         $episode->url = $ep_link;
                         // source has to be fresh for link to work
                         #$episode->source = getPageSource($ep_link);

@@ -42,13 +42,13 @@ class DownloadEpisode extends Command
     public function handle()
     {
         try {
-            DB::beginTransaction();
+            
             if (is_null($this->argument('id'))){
                 $episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
             } else {
                 $episode = Episode::find($this->argument('id'));    
             }
-            
+            \Log::info('Downloading: ' . $episode->show->name . ' - ' . $episode->name);
             if (!is_null($episode) && !$episode->processing ){
                 $episode->processing = true;
                 $episode->save();
@@ -61,9 +61,11 @@ class DownloadEpisode extends Command
             } else {
                 $this->info('Could not download episode!');
             }
-            DB::commit();
+            
         } catch (\Exception $e) {
-            DB::rollBack();
+            $episode->downloaded = false;
+            $episode->processing = false;
+            $episode->save();
             $this->info('Failed to download the episode');
         }
     }

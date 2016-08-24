@@ -29,14 +29,18 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function(){
-            $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
-            if ( !is_null($episode)){                
-                $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);                
-            }
-        })->everyThirtyMinutes()
+            \Log::info('Running episode downloader');
+            if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
+                $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
+                $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);
+            } else {
+                \Log::info("Queue is currently full retrying later...");
+            }      
+        })->everyMinute()
             ->timezone('America/Toronto')
+            ->name('Download Episode')
             ->when(function () {
-                return date('H') >= 2 && date('H') <= 7;
+                return date('H') >= env('DOWNLOAD_START', 00) && date('H') <= env('DOWNLOAD_END', 24);
             });;
 
         // $schedule->command('inspire')

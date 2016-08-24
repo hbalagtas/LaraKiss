@@ -47,8 +47,6 @@ class Download extends Command
     public function handle()
     {
         try {
-            DB::beginTransaction();
-
             $url = $this->argument('url');
             
             if ( $episode = Episode::where('url', $url)->first() ){
@@ -86,13 +84,14 @@ class Download extends Command
             $filename = explode("?",pathinfo($url)['filename'])[0] . ".avi";
             $outputfile = $dir . '/' . $filename;
             
-            $cmd = "wget -c \"$link\" -O \"$outputfile\"";
+            #$cmd = "wget -c \"$link\" -O \"$outputfile\" > /dev/null &";
+            $cmd = "wget -c \"$link\" -O \"$outputfile\" ";
             #$cmd = "curl -O -J -L \"{$link}\" -o {$outputfile}"; 
             $this->info("Downloading file...");
             $this->info($cmd);
             exec($cmd, $output, $ret_var);
-            $this->info("Finished downloading {$outputfile}");
-            DB::commit();
+            $this->info("Downloading in the background: $outputfile}");
+            
             if ( $ret_var == 0 ){
                 if ( $episode ) {
                     $episode->downloaded = true;
@@ -101,11 +100,20 @@ class Download extends Command
                 }
                 return true;
             } else {
+                if ( $episode ) {
+                    $episode->downloaded = false;
+                    $episode->processing = false;
+                    $episode->save();
+                }
                 return false;
             }
         } catch (\Exception $e) {
-            DB::rollBack();
-            $this->info('Failed to download the episode');
+            if ( $episode ) {
+                $episode->downloaded = false;
+                $episode->processing = false;
+                $episode->save();
+            }            
+            $this->info($e->getMessage());
         }
     }
 }
