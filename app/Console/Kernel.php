@@ -32,7 +32,11 @@ class Kernel extends ConsoleKernel
             \Log::info('Running episode downloader');
             if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
                 $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
-                $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);
+                if ( $episode ){
+                    $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
+                } else {
+                    \Log::info("Nothing to download...");
+                }                
             } else {
                 \Log::info("Queue is currently full retrying later...");
             }      
