@@ -29,14 +29,14 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function(){
-            $episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
+            $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
             if ( !is_null($episode)){                
-                $exitCode = Artisan::call('kiss:downloadepisode',['id' => $episode->id]);                
+                $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);                
             }
         })->everyThirtyMinutes()
             ->timezone('America/Toronto')
             ->when(function () {
-                return date('H') >= 2 && date('H') <= 8;
+                return date('H') >= 2 && date('H') <= 7;
             });;
 
         // $schedule->command('inspire')

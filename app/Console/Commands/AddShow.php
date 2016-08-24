@@ -48,11 +48,13 @@ class AddShow extends Command
         if ( is_null($show) ){
             
             $source = getPageSource($url);
+            $html = new Htmldom($source);
             if ( $source ){
                 $show = new Show;
                 $show->name = $show_name;
                 $show->folder = str_slug($show->name);  
                 $show->source = $source;
+                $show->cover = $html->find('.barContent img', 2)->src;
                 $show->watched = false;
                 $show->save();
 

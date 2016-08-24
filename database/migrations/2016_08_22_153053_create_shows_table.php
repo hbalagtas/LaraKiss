@@ -15,7 +15,8 @@ class CreateShowsTable extends Migration
         Schema::create('shows', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->unique()->index();
-            $table->string('genre');
+            $table->string('cover');
+            $table->text('summary');
             $table->text('source')->comment('HTML Source');
             $table->string('folder');
             $table->boolean('watched');            

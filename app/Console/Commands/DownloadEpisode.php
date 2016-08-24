@@ -2,9 +2,11 @@
 
 namespace LaraKiss\Console\Commands;
 
-use Illuminate\Console\Command;
-use LaraKiss\Episode;
 use Artisan;
+use Exception;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use LaraKiss\Episode;
 
 class DownloadEpisode extends Command
 {
@@ -13,7 +15,7 @@ class DownloadEpisode extends Command
      *
      * @var string
      */
-    protected $signature = 'kiss:downloadepisode {id?}';
+    protected $signature = 'kiss:getepisode {id?}';
 
     /**
      * The console command description.
@@ -39,23 +41,30 @@ class DownloadEpisode extends Command
      */
     public function handle()
     {
-        if (is_null($this->argument('id'))){
-            $episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
-        } else {
-            $episode = Episode::find($this->argument('id'));    
-        }
-        
-        if (!is_null($episode) && !$episode->processing ){
-            $episode->processing = true;
-            $episode->save();
-            $exitCode = Artisan::call('kiss:download',['url' => $episode->url]);
-            if ( $exitCode == 0){
-                $episode->downloaded = true;
-                $episode->processing = false;
-                $episode->save();
+        try {
+            DB::beginTransaction();
+            if (is_null($this->argument('id'))){
+                $episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
+            } else {
+                $episode = Episode::find($this->argument('id'));    
             }
-        } else {
-            $this->info('Could not download episode!');
+            
+            if (!is_null($episode) && !$episode->processing ){
+                $episode->processing = true;
+                $episode->save();
+                $exitCode = Artisan::call('kiss:download',['url' => $episode->url]);
+                if ( $exitCode == 0){
+                    $episode->downloaded = true;
+                    $episode->processing = false;
+                    $episode->save();
+                }
+            } else {
+                $this->info('Could not download episode!');
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->info('Failed to download the episode');
         }
     }
 }

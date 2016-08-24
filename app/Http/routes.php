@@ -25,6 +25,19 @@ Route::get('/', function () {
 	return view('welcome');
 });
 
+Route::get('/transaction-test', function(){
+	DB::beginTransaction();
+	$episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
+	$episode->processing = true;
+	$episode->save();
+	echo "<p>{$episode->name} - {$episode->processing} </p>";
+	$episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
+	$episode->processing = true;
+	$episode->save();
+	echo "<p>{$episode->name} - {$episode->processing} </p>";
+	DB::commit();
+});
+
 Route::get('/test', function () {
 	$url = "http://kissanime.to/Anime/Masou-Gakuen-HxH/Episode-001-Uncensored?id=127482";
 	$host = 'http://localhost:4444/wd/hub';

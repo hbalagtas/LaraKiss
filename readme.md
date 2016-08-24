@@ -24,7 +24,8 @@ Users
 shows
 - id
 - name
-- genre (anime,drama,cartoon)
+- cover
+- summary
 - source
 - folder
 - watched

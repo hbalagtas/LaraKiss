@@ -5,10 +5,10 @@
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <div class="panel panel-default">
-                <div class="panel-heading">Welcome</div>
+                <div class="panel-heading">Welcome to LaraKiss</div>
 
                 <div class="panel-body">
-                    Your Application's Landing Page.
+                    Created this app for my lovely and sexy wife who loves watching korean dramas.
                 </div>
             </div>
         </div>

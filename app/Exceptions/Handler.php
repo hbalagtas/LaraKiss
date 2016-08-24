@@ -3,12 +3,13 @@
 namespace LaraKiss\Exceptions;
 
 use Exception;
-use Illuminate\Session\TokenMismatchException;
-use Illuminate\Validation\ValidationException;
+use Facebook\WebDriver\Exception\WebDriverCurlException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -35,14 +36,6 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $e)
     {
-        if ($e instanceof Facebook\WebDriver\Exception\WebDriverCurlException) {
-            return "BAD BAD FACEBOOK";
-        }
-
-        if ($e instanceof WebDriverCurlException) {
-            return "BAD BAD FACEBOOK";
-        }
-
         parent::report($e);
     }
 
