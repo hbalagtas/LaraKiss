@@ -20,7 +20,7 @@ use Facebook\WebDriver\WebDriverExpectedCondition;
 Route::auth();
 
 Route::get('/home', 'HomeController@index');
-
+Route::resource('show', 'ShowController');
 Route::get('/', function () {
 	return view('welcome');
 });
