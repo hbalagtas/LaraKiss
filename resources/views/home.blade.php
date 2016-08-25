@@ -28,6 +28,7 @@
                                 <th>Name</th>
                                 <th>Summary</th>
                                 <th>Episodes</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,6 +39,20 @@
                                     <td class="col-md-1">
                                     <span class="badge">{{$show->episodes()->whereDownloaded(true)->count()}}</span> /
                                     <span class="badge">{{$show->episodes()->count()}}</span>
+                                    </td>
+                                    <td class="col-md-2">
+                                        
+                                        <form action="{{route('show.destroy', [$show->id])}}" method="POST">
+                                            {{ csrf_field() }}
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                            <a href="{{route('show.edit', [$show->id])}}" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                                        </form>
+                                        
+                                        
+
+                                        
+
                                     </td>
                                 </tr>
                             @endforeach

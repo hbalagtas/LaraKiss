@@ -54,8 +54,8 @@ class AddShow extends Command
                 $show->name = $show_name;
                 $show->folder = str_slug($show->name);  
                 $show->source = $source;
-                $show->cover = $html->find('.barContent img', 2)->src;
-                $show->summary = $html->find('#leftside div p', 6)->plaintext;
+                //$show->cover = $html->find('.barContent img', 2)->src;
+                //$show->summary = $html->find('#leftside div p', 6)->plaintext;
                 $show->watched = false;
                 $show->save();
 

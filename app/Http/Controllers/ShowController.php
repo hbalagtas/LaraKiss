@@ -4,7 +4,9 @@ namespace LaraKiss\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Redirect;
 use LaraKiss\Http\Requests;
+use LaraKiss\Show;
 
 class ShowController extends Controller
 {
@@ -49,9 +51,9 @@ class ShowController extends Controller
     {
         if ( $url = $request->url ) {
             Artisan::call('kiss:addshow', ['url' => $url]);
-            return Redirect::back();
+            return redirect('/home');
         } else {
-            return Redirect::back()->withInput();
+            return Redirect::back();
         }
     }
 
@@ -97,6 +99,8 @@ class ShowController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $show = Show::findOrfail($id);
+        Show::destroy($show->id);
+        return Redirect::back();
     }
 }
