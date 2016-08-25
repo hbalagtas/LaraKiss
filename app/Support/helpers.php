@@ -18,6 +18,7 @@ function getPageSource($url, $spoof=true)
                 );
         }
         $source = $driver->getPageSource();
+        $driver->quit();
         return $source;
     } catch( \Exception $e ){
         return false;

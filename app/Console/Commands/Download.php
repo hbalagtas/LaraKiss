@@ -49,15 +49,16 @@ class Download extends Command
         try {
             $url = $this->argument('url');
             
-            if ( $episode = Episode::where('url', $url)->first() ){
-                $episode->processing = true;
-                $episode->save();    
-            }
             $this->info("Downloading source...");
             $host = 'http://localhost:4444/wd/hub';
 
             $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Windows');
-                $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);       
+            try {
+                 \Log::info("Starting webdriver...");
+                $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);
+            } catch (\Exception $e){
+                \Log::info("Failed to initialize webdriver");
+            }
             
             $driver->get("http://".parse_url($url)['host']);
 
@@ -66,14 +67,25 @@ class Download extends Command
             $driver->wait(240, 1000)->until(
                 WebDriverExpectedCondition::not(WebDriverExpectedCondition::titleIs('Please wait 5 seconds...'))
                 );
-            
+            \Log::info("Getting page source...");
             $source = $driver->getPageSource();
 
             $element = $driver->findElement(WebDriverBy::id("my_video_1_html5_api"));
             $link = $element->getAttribute('src');
+            $driver->quit();
+            if ( empty($link) ) {    
+                \Log::info("FAILED to get link!");            
+                return false;
+            } else {
+                if ( $episode = Episode::where('url', $url)->first() ){
+                    $episode->processing = true;
+                    $episode->save();    
+                }
+            }
+
             /*$driver->get($link);
             $link = $driver->getCurrentURL();*/
-            $this->info($link);
+            //$this->info($link);
             /*$html = new Htmldom($source);
             $link = $html->getElementById("my_video_1_html5_api")->src;*/
 
@@ -87,32 +99,31 @@ class Download extends Command
             #$cmd = "wget -c \"$link\" -O \"$outputfile\" > /dev/null &";
             $cmd = "wget -c \"$link\" -O \"$outputfile\" ";
             #$cmd = "curl -O -J -L \"{$link}\" -o {$outputfile}"; 
-            $this->info("Downloading file...");
-            $this->info($cmd);
-            exec($cmd, $output, $ret_var);
-            $this->info("Downloading in the background: $outputfile}");
             
-            if ( $ret_var == 0 ){
+            $this->info("Downloading file $outputfile");
+            \Log::info("Downloading file $outputfile");
+            
+            #$this->info($cmd);
+            exec($cmd, $output, $ret_var);            
+            
+            if ( file_exists($outputfile) ) {               
                 if ( $episode ) {
+                     \Log::info("OK: $outputfile");
                     $episode->downloaded = true;
                     $episode->processing = false;
                     $episode->save();
-                }
+                }                
                 return true;
-            } else {
+            } else {                
                 if ( $episode ) {
+                    \Log::info("FAILED: $outputfile");
                     $episode->downloaded = false;
                     $episode->processing = false;
                     $episode->save();
-                }
+                } 
                 return false;
             }
-        } catch (\Exception $e) {
-            if ( $episode ) {
-                $episode->downloaded = false;
-                $episode->processing = false;
-                $episode->save();
-            }            
+        } catch (\Exception $e) {                       
             $this->info($e->getMessage());
         }
     }

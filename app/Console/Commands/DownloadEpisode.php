@@ -50,22 +50,26 @@ class DownloadEpisode extends Command
             }
             \Log::info('Downloading: ' . $episode->show->name . ' - ' . $episode->name);
             if (!is_null($episode) && !$episode->processing ){
-                $episode->processing = true;
-                $episode->save();
+                /*$episode->processing = true;
+                $episode->save();*/
                 $exitCode = Artisan::call('kiss:download',['url' => $episode->url]);
-                if ( $exitCode == 0){
+                /*if ( $exitCode ){
                     $episode->downloaded = true;
                     $episode->processing = false;
                     $episode->save();
-                }
+                } else {
+                    $episode->downloaded = false;
+                    $episode->processing = false;
+                    $episode->save();
+                }*/
             } else {
                 $this->info('Could not download episode!');
             }
             
         } catch (\Exception $e) {
-            $episode->downloaded = false;
+            /*$episode->downloaded = false;
             $episode->processing = false;
-            $episode->save();
+            $episode->save();*/
             $this->info('Failed to download the episode');
         }
     }
