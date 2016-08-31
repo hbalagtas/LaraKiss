@@ -48,15 +48,17 @@ class Download extends Command
     {
         try {
             $url = $this->argument('url');
-            
+            $episode = Episode::where('url', $url)->first();
+
             $this->info("Downloading source...");
             $host = 'http://localhost:4444/wd/hub';
 
-            $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Windows');
+            $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');
             try {
                  \Log::info("Starting webdriver...");
                 $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);
             } catch (\Exception $e){
+                $this->info("Failed to initialize webdriver");
                 \Log::info("Failed to initialize webdriver");
             }
             
@@ -70,18 +72,49 @@ class Download extends Command
             \Log::info("Getting page source...");
             $source = $driver->getPageSource();
 
-            $element = $driver->findElement(WebDriverBy::id("my_video_1_html5_api"));
-            $link = $element->getAttribute('src');
-            $driver->quit();
-            if ( empty($link) ) {    
-                \Log::info("FAILED to get link!");            
+            // check for reCaptcha
+            // recaptcha-checkbox-spinner
+            #driver.findElement(By.className("AddContentBTN")).click();
+            /*if ( $reCaptcha = $driver->findElement(WebDriverBy::className("recaptcha-checkbox-spinner")) ) {
+                $driver->findElement(WebDriverBy::className("recaptcha-checkbox-spinner")).click();
+                sleep(10);
+                $driver->findElement(WebDriverBy::className("aButton")).click();
+                \Log::info("Abort reCaptcha found!");
                 return false;
             } else {
-                if ( $episode = Episode::where('url', $url)->first() ){
-                    $episode->processing = true;
-                    $episode->save();    
+                \Log::info("reCaptcha not found");
+            }*/
+
+            if ( $source ){
+                \Log::info("Page source retrieved!");
+                if ( $episode ){
+                    $episode->processing = true;                    
+                    $episode->source = $source;
+                    $episode->save();
                 }
+                $element = $driver->findElement(WebDriverBy::id("my_video_1_html5_api"));
+                $link = $element->getAttribute('src');
+                $driver->quit();
+                \Log::info($link);
+                if ( empty($link) ) {    
+                    \Log::info("FAILED to get link.");
+                    if ( $episode ){
+                        $episode->processing = false;
+                        $episode->save();    
+                    }
+                    return false;
+                } else {
+                    \Log::info("Found the missing link...");    
+                    if ( $episode ){
+                        $episode->processing = true;
+                        $episode->save();    
+                    }
+                }
+            } else {
+                \Log::info("Failed to get source");
             }
+            
+            
 
             /*$driver->get($link);
             $link = $driver->getCurrentURL();*/
@@ -123,7 +156,29 @@ class Download extends Command
                 } 
                 return false;
             }
-        } catch (\Exception $e) {                       
+        } catch (\Exception $e) {     
+            if ( $episode ) {
+                \Log::info("WebDriver Error");
+                $episode->downloaded = false;
+                $episode->processing = false;
+                $episode->save();
+            }            
+
+            if ( $reCaptcha = $driver->findElement(WebDriverBy::id("formVerify")) ) {
+                \Log::info("Switching to reCaptcha frame!");
+                
+                /*$driver->findElement(WebDriverBy::className("recaptcha-checkbox-spinner")).click();
+                sleep(10);
+                $driver->findElement(WebDriverBy::className("aButton")).click();*/
+                $driver->switchTo(WebDriverBy::name("undefined"));
+                //$driver->switchTo()->frame(WebDriverBy::id("^=oauth2relay"));
+                \Log::info("trying to click on reCaptcha");
+                #$driver->findElement(WebDriverBy::id("recaptcha-anchor")).click();
+                return false;
+            } else {
+                \Log::info("reCaptcha not found");
+            }
+                  
             $this->info($e->getMessage());
         }
     }

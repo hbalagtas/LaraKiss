@@ -21,6 +21,7 @@ function getPageSource($url, $spoof=true)
         $driver->quit();
         return $source;
     } catch( \Exception $e ){
+        \Log::info('Failed to get source');
         return false;
     }
 }
