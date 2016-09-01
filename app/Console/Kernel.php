@@ -40,7 +40,7 @@ class Kernel extends ConsoleKernel
             } else {
                 \Log::info("Queue is currently full retrying later...");
             }      
-        })->everyFiveMinutes()
+        })->cron('*/'.rand(2,5).' * * * * *')
             ->timezone('America/Toronto')
             ->name('Download Episode')
             ->when(function () {
