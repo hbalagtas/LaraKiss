@@ -3,6 +3,7 @@
 namespace LaraKiss\Console\Commands;
 
 use Exception;
+use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\WebDriverCapabilityType;
@@ -10,6 +11,7 @@ use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use LaraKiss\Config;
 use LaraKiss\Episode;
 use Yangqi\Htmldom\Htmldom;
 
@@ -53,16 +55,26 @@ class Download extends Command
             $this->info("Downloading source...");
             $host = 'http://localhost:4444/wd/hub';
 
-            $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');
+            $options = new ChromeOptions();
+            $options->addArguments(['--user-data-dir=/home/vagrant/.config/google-chrome/Default']);
+
+            $caps = DesiredCapabilities::chrome();
+            $caps->setCapability(ChromeOptions::CAPABILITY, $options);
+            $caps->setCapability(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED, true);
+            #var_dump($caps->toArray());
+            #$co->addArguments(["user-data-dir" => "/home/vagrant/.config/google-chrome/Default"]);
+            $capabilities = array(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED => true, WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');
+            
             try {
-                 \Log::info("Starting webdriver...");
-                $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);
+                 \Log::info("Starting webdriver...");                
+                $driver = RemoteWebDriver::create($host, $caps, 70000, 70000);
+
             } catch (\Exception $e){
                 $this->info("Failed to initialize webdriver");
                 \Log::info("Failed to initialize webdriver");
             }
             
-            $driver->get("http://".parse_url($url)['host']);
+            #$driver->get("http://".parse_url($url)['host']);
 
             $driver->get($url);
                   
@@ -162,8 +174,13 @@ class Download extends Command
                 $episode->downloaded = false;
                 $episode->processing = false;
                 $episode->save();
-            }            
+            }      
 
+            // pause for an hour
+            $pause_downloads = LaraKiss\Config::find('setting', 'pause_downloads')->first(); 
+            $pause_downloads->value = true;
+            $pause_downloads->save();
+            
             if ( $reCaptcha = $driver->findElement(WebDriverBy::id("formVerify")) ) {
                 \Log::info("Switching to reCaptcha frame!");
                 
@@ -174,6 +191,7 @@ class Download extends Command
                 //$driver->switchTo()->frame(WebDriverBy::id("^=oauth2relay"));
                 \Log::info("trying to click on reCaptcha");
                 #$driver->findElement(WebDriverBy::id("recaptcha-anchor")).click();
+                $driver->quit();
                 return false;
             } else {
                 \Log::info("reCaptcha not found");

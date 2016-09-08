@@ -2,10 +2,11 @@
 
 namespace LaraKiss\Console;
 
+use Artisan;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use LaraKiss\Config as LaraKissConfig;
 use LaraKiss\Episode;
-use Artisan;
 class Kernel extends ConsoleKernel
 {
     /**
@@ -30,17 +31,27 @@ class Kernel extends ConsoleKernel
     {
         $schedule->call(function(){
             \Log::info('Running episode downloader');
-            if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
-                $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
-                if ( $episode ){
-                    $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
+            $pause_downloads = LaraKissConfig::where('setting', 'pause_downloads')->first(); 
+            if (!$pause_downloads->value){
+                if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
+                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
+                    if ( $episode ){
+                        $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
+                    } else {
+                        \Log::info("Nothing to download...");
+                    }                
                 } else {
-                    \Log::info("Nothing to download...");
-                }                
+                    \Log::info("Queue is currently full retrying later...");
+                } 
             } else {
-                \Log::info("Queue is currently full retrying later...");
-            }      
-        })->cron('*/'.rand(2,5).' * * * * *')
+                \Log::info("Downloads are paused.");
+                if ( $pause_downloads->updated_at->diffInHours() > 0) {
+                    $pause_downloads->value = false;
+                    $pause_downloads->save();
+                }                
+            }
+                 
+        })->cron('*/'.rand(15,30).' * * * * *')
             ->timezone('America/Toronto')
             ->name('Download Episode')
             ->when(function () {
