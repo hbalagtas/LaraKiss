@@ -11,7 +11,7 @@ use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use LaraKiss\Config;
+use LaraKiss\Config as LaraKissConfig;
 use LaraKiss\Episode;
 use Yangqi\Htmldom\Htmldom;
 
@@ -61,28 +61,57 @@ class Download extends Command
             $caps = DesiredCapabilities::chrome();
             $caps->setCapability(ChromeOptions::CAPABILITY, $options);
             $caps->setCapability(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED, true);
-            #var_dump($caps->toArray());
-            #$co->addArguments(["user-data-dir" => "/home/vagrant/.config/google-chrome/Default"]);
+            $caps->setCapability(WebDriverCapabilityType::JAVASCRIPT_ENABLED, true);
+            $caps->setCapability(WebDriverCapabilityType::PLATFORM, 'Linux');
+            $caps->setCapability(WebDriverCapabilityType::DATABASE_ENABLED, true);
+            $caps->setCapability(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED, true);
+            $caps->setCapability(WebDriverCapabilityType::TAKES_SCREENSHOT, false);
+            
             $capabilities = array(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED => true, WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');
             
             try {
                  \Log::info("Starting webdriver...");                
-                $driver = RemoteWebDriver::create($host, $caps, 70000, 70000);
-
-            } catch (\Exception $e){
+                $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);
+                \Log::info("Webdriver successfully initialized..."); 
+            } catch (\Exception $e){                
                 $this->info("Failed to initialize webdriver");
                 \Log::info("Failed to initialize webdriver");
+                $driver->quit();
             }
             
-            #$driver->get("http://".parse_url($url)['host']);
+            try {
+                $driver->get("http://".parse_url($url)['host']);
+                \Log::info("Getting url: {$url}"); 
+                $driver->get($url);
+                $title = $driver->getTitle();
+                \Log::info( "Page title is {$title}");    
+            } catch (\Exception $e){
+                \Log::info("Failed to get url: {$url}"); 
+            }
+            
+            try {
+                \Log::info("Waiting for countdown page to complete...");      
+                $driver->wait(240, 1000)->until(
+                    WebDriverExpectedCondition::not(WebDriverExpectedCondition::titleIs('Please wait 5 seconds...'))
+                    );
+            } catch (\Exception $e){
+                $this->info("Failed waiting for page to countdown");
+                \Log::info("Failed waiting for page to countdown");
+                $source = $driver->getPageSource(); 
+                $episode->source = $source;
+                $episode->save();
+                $driver->quit();
+            }            
 
-            $driver->get($url);
-                  
-            $driver->wait(240, 1000)->until(
-                WebDriverExpectedCondition::not(WebDriverExpectedCondition::titleIs('Please wait 5 seconds...'))
-                );
-            \Log::info("Getting page source...");
-            $source = $driver->getPageSource();
+            try {
+                \Log::info("Getting page source...");
+                $source = $driver->getPageSource();    
+            } catch( \Exception $e){
+                $this->info("Failed to retrieve page source");
+                \Log::info("Failed to retrieve page source");
+                $driver->quit();
+            }
+            
 
             // check for reCaptcha
             // recaptcha-checkbox-spinner
@@ -107,7 +136,7 @@ class Download extends Command
                 $element = $driver->findElement(WebDriverBy::id("my_video_1_html5_api"));
                 $link = $element->getAttribute('src');
                 $driver->quit();
-                \Log::info($link);
+                #\Log::info($link);
                 if ( empty($link) ) {    
                     \Log::info("FAILED to get link.");
                     if ( $episode ){
@@ -177,27 +206,12 @@ class Download extends Command
             }      
 
             // pause for an hour
-            $pause_downloads = LaraKiss\Config::find('setting', 'pause_downloads')->first(); 
+            $pause_downloads = LaraKissConfig::where('setting', 'pause_downloads')->first(); 
             $pause_downloads->value = true;
-            $pause_downloads->save();
-            
-            if ( $reCaptcha = $driver->findElement(WebDriverBy::id("formVerify")) ) {
-                \Log::info("Switching to reCaptcha frame!");
-                
-                /*$driver->findElement(WebDriverBy::className("recaptcha-checkbox-spinner")).click();
-                sleep(10);
-                $driver->findElement(WebDriverBy::className("aButton")).click();*/
-                $driver->switchTo(WebDriverBy::name("undefined"));
-                //$driver->switchTo()->frame(WebDriverBy::id("^=oauth2relay"));
-                \Log::info("trying to click on reCaptcha");
-                #$driver->findElement(WebDriverBy::id("recaptcha-anchor")).click();
-                $driver->quit();
-                return false;
-            } else {
-                \Log::info("reCaptcha not found");
-            }
+            $pause_downloads->save();            
                   
             $this->info($e->getMessage());
+            $driver->quit();
         }
     }
 }

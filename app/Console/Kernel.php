@@ -45,7 +45,8 @@ class Kernel extends ConsoleKernel
                 } 
             } else {
                 \Log::info("Downloads are paused.");
-                if ( $pause_downloads->updated_at->diffInHours() > 0) {
+                if ( $pause_downloads->updated_at->diffInMinutes() > 30) {
+                    \Log::info("Resuming downloads.");
                     $pause_downloads->value = false;
                     $pause_downloads->save();
                 }                
