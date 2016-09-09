@@ -164,6 +164,7 @@ return [
         LaraKiss\Providers\RouteServiceProvider::class,
 
         Yangqi\Htmldom\HtmldomServiceProvider::class,
+        Spatie\Tail\TailServiceProvider::class,
 
     ],
 

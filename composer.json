@@ -9,7 +9,8 @@
         "laravel/framework": "5.2.*",
         "guzzlehttp/guzzle": "^6.2",
         "facebook/webdriver": "^1.1",
-        "yangqi/htmldom": "dev-master"
+        "yangqi/htmldom": "dev-master",
+        "spatie/laravel-tail": "^1.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
