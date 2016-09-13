@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
             $pause_downloads = LaraKissConfig::where('setting', 'pause_downloads')->first(); 
             if (!$pause_downloads->value){
                 if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
-                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
+                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'asc')->first();
                     if ( $episode ){
                         $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
                     } else {

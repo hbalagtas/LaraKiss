@@ -95,6 +95,8 @@ class Download extends Command
                     WebDriverExpectedCondition::not(WebDriverExpectedCondition::titleIs('Please wait 5 seconds...'))
                     );
             } catch (\Exception $e){
+                $title = $driver->getTitle();
+                \Log::info( "Page title is {$title}");
                 $this->info("Failed waiting for page to countdown");
                 \Log::info("Failed waiting for page to countdown");
                 $source = $driver->getPageSource(); 
