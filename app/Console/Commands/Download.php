@@ -67,16 +67,21 @@ class Download extends Command
             $caps->setCapability(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED, true);
             $caps->setCapability(WebDriverCapabilityType::TAKES_SCREENSHOT, false);
             
-            $capabilities = array(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED => true, WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');
-            
+            /*$capabilities = array(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED => true, WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux');*/
+            $capabilities = array(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED => true, WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Linux', ChromeOptions::CAPABILITY => $options);
+            if ( rand(0,1) ){
+                $drivercaps = $caps;
+            } else {
+                $drivercaps = $capabilities;
+            }
             try {
                  \Log::info("Starting webdriver...");                
-                $driver = RemoteWebDriver::create($host, $capabilities, 70000, 70000);
+                $driver = RemoteWebDriver::create($host, $drivercaps, 70000, 70000);
                 \Log::info("Webdriver successfully initialized..."); 
             } catch (\Exception $e){                
                 $this->info("Failed to initialize webdriver");
                 \Log::info("Failed to initialize webdriver");
-                $driver->quit();
+                $driver->quit();                
             }
             
             try {
@@ -89,12 +94,12 @@ class Download extends Command
                 \Log::info("Failed to get url: {$url}"); 
             }
             
-            try {
+            #try {
                 \Log::info("Waiting for countdown page to complete...");      
                 $driver->wait(240, 1000)->until(
                     WebDriverExpectedCondition::not(WebDriverExpectedCondition::titleIs('Please wait 5 seconds...'))
                     );
-            } catch (\Exception $e){
+            /*} catch (\Exception $e){
                 $title = $driver->getTitle();
                 \Log::info( "Page title is {$title}");
                 $this->info("Failed waiting for page to countdown");
@@ -103,16 +108,16 @@ class Download extends Command
                 $episode->source = $source;
                 $episode->save();
                 $driver->quit();
-            }            
+            }  */          
 
-            try {
+            #try {
                 \Log::info("Getting page source...");
                 $source = $driver->getPageSource();    
-            } catch( \Exception $e){
+            /*} catch( \Exception $e){
                 $this->info("Failed to retrieve page source");
                 \Log::info("Failed to retrieve page source");
                 $driver->quit();
-            }
+            }*/
             
 
             // check for reCaptcha

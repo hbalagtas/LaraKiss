@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         Commands\Download::class,
         Commands\DownloadEpisode::class,
         Commands\AddShow::class,
+        Commands\RestartWebdriver::class,
     ];
 
     /**
@@ -32,9 +33,10 @@ class Kernel extends ConsoleKernel
         $schedule->call(function(){
             \Log::info('Running episode downloader');
             $pause_downloads = LaraKissConfig::where('setting', 'pause_downloads')->first(); 
-            if (!$pause_downloads->value){
+            #if (!$pause_downloads->value){
+            if ( true ) {
                 if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
-                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'asc')->first();
+                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
                     if ( $episode ){
                         $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
                     } else {
@@ -52,12 +54,16 @@ class Kernel extends ConsoleKernel
                 }                
             }
                  
-        })->cron('*/'.rand(15,30).' * * * * *')
+        })->cron('*/'.rand(10,20).' * * * * *')
             ->timezone('America/Toronto')
             ->name('Download Episode')
             ->when(function () {
                 return date('H') >= env('DOWNLOAD_START', 00) && date('H') <= env('DOWNLOAD_END', 24);
             });;
+
+        /*$schedule->call(function(){
+            Artisan::call('kiss:restartwd');
+        })->everyMinute();*/
 
         // $schedule->command('inspire')
         //          ->hourly();
