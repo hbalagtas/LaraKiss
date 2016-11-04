@@ -36,7 +36,7 @@
                             @foreach ( Show::orderBy('id', 'desc')->get() as $show)
                                 <tr>
                                     <td lass="col-md-1">{{$show->id}}</td>
-                                    <td class="col-md-6">{{$show->name}}</td>
+                                    <td class="col-md-6"><a href="{{route('show.show', $show->id)}}">{{$show->name}}</a></td>
                                     <td>{{$show->url}}</td>
                                     <td class="col-md-1">
                                     <span class="badge">{{$show->episodes()->whereDownloaded(true)->count()}}</span> /
@@ -58,6 +58,33 @@
                     
                 </div>
             </div>
+            @if (Episode::whereProcessing(true)->count() > 0)
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Currently Downloading</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Name</th>                                
+                                <th>Downloaded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(Episode::whereProcessing(true)->get() as $episode)
+                            <tr>
+                                <td>{{$episode->id}}</td>
+                                <td><a href="{{$episode->url}}">{{$episode->name}}</a></td>                                
+                                <td><i class="fa fa-download" aria-hidden="true"></i></td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
