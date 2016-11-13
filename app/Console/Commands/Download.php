@@ -184,7 +184,7 @@ class Download extends Command
             $outputfile = $dir . '/' . $filename;
             
             #$cmd = "wget -c \"$link\" -O \"$outputfile\" > /dev/null &";
-            $cmd = "/usr/local/bin/wget -c \"$link\" -O \"$outputfile\" ";
+            $cmd = env('WGET', '/usr/bin/wget') . " -c \"$link\" -O \"$outputfile\" ";
             #$cmd = "curl -O -J -L \"{$link}\" -o {$outputfile}"; 
             
             $this->info("Downloading file $outputfile");
