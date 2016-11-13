@@ -17,6 +17,8 @@
                                   <input type="text" class="form-control" id="url" name="url" placeholder="i.e. http://kissanime.to/Anime/Fullmetal-Alchemist-Brotherhood-Dub" style="width:350px">
                                 </div>
                               <button type="submit" class="btn btn-primary">Add Show</button>
+                              Downloads
+                              <input type="checkbox" name="downloadStatus" id="downloadStatus" data-toggle="toggle" data-on="Enabled" data-off="Disabled">
                             </form> 
                         </div>
                                              
@@ -69,7 +71,7 @@
                             <tr>
                                 <th>Id</th>
                                 <th>Name</th>                                
-                                <th>Downloaded</th>
+                                <th>Processing</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,4 +90,15 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+  $(function() {
+    $('#downloadStatus').bootstrapToggle({
+      on: 'Enabled',
+      off: 'Disabled'
+    });
+  })
+</script>
 @endsection

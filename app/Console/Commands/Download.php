@@ -56,8 +56,9 @@ class Download extends Command
             $host = 'http://localhost:4444/wd/hub';
 
             $options = new ChromeOptions();
-            $options->addArguments(['--user-data-dir=/home/vagrant/.config/google-chrome/Default']);
-
+            #$options->addArguments(['--user-data-dir=/home/vagrant/.config/google-chrome/Default']);
+            $options->addArguments(['--user-data-dir="/Users/hbalagtas/Library/Application Support/Google/Chrome/Profile 1"']);
+            
             $caps = DesiredCapabilities::chrome();
             $caps->setCapability(ChromeOptions::CAPABILITY, $options);
             $caps->setCapability(WebDriverCapabilityType::APPLICATION_CACHE_ENABLED, true);
@@ -74,6 +75,10 @@ class Download extends Command
             } else {
                 $drivercaps = $capabilities;
             }
+            $drivercaps = $caps;
+
+            $host = env('WD_HOST','http://localhost:4444/wd/hub');
+            $drivercaps = array(WebDriverCapabilityType::BROWSER_NAME => 'firefox', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Windows 10');
             try {
                  \Log::info("Starting webdriver...");                
                 $driver = RemoteWebDriver::create($host, $drivercaps, 70000, 70000);
@@ -85,8 +90,8 @@ class Download extends Command
             }
             
             try {
-                $driver->get("http://".parse_url($url)['host']);
-                \Log::info("Getting url: {$url}"); 
+                #$driver->get("http://".parse_url($url)['host']);
+                #\Log::info("Getting url: {$url}"); 
                 $driver->get($url);
                 $title = $driver->getTitle();
                 \Log::info( "Page title is {$title}");    
@@ -172,13 +177,14 @@ class Download extends Command
 
             $dir = env('DOWNLOAD_FOLDER', public_path()) . "/" . pathinfo(pathinfo($url)['dirname'])["basename"];
             if ( !is_dir($dir) ){
+                \Log::info($dir);
                 mkdir($dir);
             }
             $filename = explode("?",pathinfo($url)['filename'])[0] . ".avi";
             $outputfile = $dir . '/' . $filename;
             
             #$cmd = "wget -c \"$link\" -O \"$outputfile\" > /dev/null &";
-            $cmd = "wget -c \"$link\" -O \"$outputfile\" ";
+            $cmd = "/usr/local/bin/wget -c \"$link\" -O \"$outputfile\" ";
             #$cmd = "curl -O -J -L \"{$link}\" -o {$outputfile}"; 
             
             $this->info("Downloading file $outputfile");

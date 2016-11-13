@@ -7,8 +7,8 @@ use Facebook\WebDriver\WebDriverExpectedCondition;
 function getPageSource($url, $spoof=true)
 {
     try {
-        $host = 'http://localhost:4444/wd/hub';
-        $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'chrome', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Windows');
+        $host = env('WD_HOST','http://localhost:4444/wd/hub');
+        $capabilities = array(WebDriverCapabilityType::BROWSER_NAME => 'firefox', WebDriverCapabilityType::JAVASCRIPT_ENABLED => true, WebDriverCapabilityType::PLATFORM => 'Windows');
         $driver = RemoteWebDriver::create($host, $capabilities, 60*1000, 60*000);   
         
         $driver->get($url);
@@ -24,4 +24,9 @@ function getPageSource($url, $spoof=true)
         \Log::info('Failed to get source');
         return false;
     }
+}
+
+function getDownloadStatus()
+{
+    return LaraKiss\Config::where('setting', 'pause_downloads')->first()->value;
 }

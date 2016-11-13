@@ -1,2 +1,2 @@
 #! /bin/bash
-screen -d -m -S "Selenium Session" /home/vagrant/Code/larakiss/start_selenium.sh
+screen -d -m -S "Selenium Session" /Users/hbalagtas/Projects/Sites/larakiss/start_selenium.sh

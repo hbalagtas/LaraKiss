@@ -44,7 +44,7 @@ class DownloadEpisode extends Command
         try {
             
             if (is_null($this->argument('id'))){
-                $episode = Episode::whereDownloaded(false)->whereProcessing(false)->first();
+                $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
             } else {
                 $episode = Episode::find($this->argument('id'));    
             }

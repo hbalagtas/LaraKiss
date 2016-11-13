@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
             #if (!$pause_downloads->value){
             if ( true ) {
                 if ( Episode::whereProcessing(true)->count() < env('DOWNLOAD_MAX', 2) ) {                
-                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('id', 'desc')->first();
+                    $episode = Episode::whereDownloaded(false)->whereProcessing(false)->orderBy('priority', 'desc')->orderBy('id', 'desc')->first();
                     if ( $episode ){
                         $exitCode = Artisan::call('kiss:getepisode',['id' => $episode->id]);    
                     } else {
@@ -54,11 +54,11 @@ class Kernel extends ConsoleKernel
                 }                
             }
                  
-        })->cron('*/'.rand(10,20).' * * * * *')
+        })->cron('* * * * * *')
             ->timezone('America/Toronto')
             ->name('Download Episode')
             ->when(function () {
-                return date('H') >= env('DOWNLOAD_START', 00) && date('H') <= env('DOWNLOAD_END', 24);
+                return date('H') >= env('DOWNLOAD_START', 00) && date('H') <= env('DOWNLOAD_STOP', 24);
             });;
 
         /*$schedule->call(function(){

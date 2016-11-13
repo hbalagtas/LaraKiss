@@ -65,7 +65,8 @@ class ShowController extends Controller
      */
     public function show($id)
     {
-        //
+        $show = Show::findOrfail($id);
+        return view('show.index', compact('show'));
     }
 
     /**

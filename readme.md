@@ -2,6 +2,8 @@
 
 requirements: Ubuntu server, google chrome stable browser, chrome webdriver, selenium standalone server
 
+It seems webdriver works best on a windows machine rather than a virtual one, with the virtual one running linux the webdriver kept crashing and reCaptcha keeps getting triggered. On the windows server I was able to completely download a full season without getting the reCaptcha. I am also using Firefox instead of the chrome webdriver.
+
 sudo apt install xvfb screen default-jre
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 sudo apt-get install -f

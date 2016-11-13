@@ -12,7 +12,8 @@
                         <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>Name</th>                                
+                                <th>Name</th> 
+                                <th>Priority</th>                                
                                 <th>Downloaded</th>
                             </tr>
                         </thead>
@@ -20,7 +21,8 @@
                             @foreach($show->episodes as $episode)
                             <tr>
                                 <td>{{$episode->id}}</td>
-                                <td><a href="{{$episode->url}}">{{$episode->name}}</a></td>                                
+                                <td><a href="{{$episode->url}}">{{$episode->name}}</a></td>  
+                                <th>{{$episode->priority}}</th>                               
                                 <td>
                                     @if ( $episode->downloaded)
                                         <i class="fa fa-cloud-download" aria-hidden="true"></i>
